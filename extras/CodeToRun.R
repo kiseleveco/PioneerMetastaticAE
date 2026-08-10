@@ -1,52 +1,58 @@
 library(PioneerMetastaticAE)
+# ------------------------------------------------------------------------------
+# 0. Environment
+# ------------------------------------------------------------------------------
+source("../credentials.r")
 
+# ------------------------------------------------------------------------------
+# 1. Site-specific parameters  (edit these for every site)
+# ------------------------------------------------------------------------------
+
+JDBC <- "/home/a_kiselev/Jdbc_SAT3"
+
+DatabaseConnector::downloadJdbcDrivers(
+  "redshift",
+  pathToDriver = JDBC,
+  method = "auto",
+)
+
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms        = DBMS,
+  user        = USER,
+  password    = PASSWORD,
+  server      = SERVER,
+  port        = DB_PORT,
+  pathToDriver = JDBC
+)
+
+## -- Schema names -------------------------------------------------------------
+cdmDatabaseSchema        <- "marketscan_ccaemdcr_aug2025"# read-only CDM
+vocabularyDatabaseSchema <- cdmDatabaseSchema     # usually same as CDM
+cohortDatabaseSchema     <- "marketscan_ccaemdcr_aug2025_results"        # write-enabled; needs read/write/delete
+cohortTable              <- "cohort_SAT3"
+
+databaseId          <- "MarketScan"           # short identifier, no spaces
+databaseName        <- "MarketScan aug2025"
+databaseDescription <- "MarketScan aug2025"
+
+
+## -- Temp table emulation (Oracle / some Spark configs) -----------------------
+options(sqlRenderTempEmulationSchema = NULL)
 # Maximum number of cores to be used:
 maxCores <- parallel::detectCores()
 
 # The folder where the study intermediate and result files will be written:
-outputFolder <- "C:/studyResults/PioneerMetastaticAE"
+outputFolder <- file.path("/home/a_kiselev/output", paste0(databaseId, "_SAT3_PioneerMetastaticAE"))
 
 # Specify another folder where the Incidence rate results will be written:
-outputFolderIR<-  "C:/studyResults/PioneerMetastaticAE_IR"
+outputFolderIR<- file.path("/home/a_kiselev/output", paste0(databaseId, "_SAT3_PioneerMetastaticAE"))
 # Optional: specify where the temporary files (used by the Andromeda package) will be created:
 options(andromedaTempFolder = file.path(outputFolder, "andromedaTemp"))
 
-# Details for connecting to the server:
-# Database management system name; has to be one of the following:
-#'sql server','oracle','postgresql','pdw','impala','netezza','bigquery','spark','sqlite','redshift','hive','sqlite extended','duckdb','snowflake','synapse'
- DBMS = "postgresql" 
-#user name
- USER = "johnsmith"
-#password
- PASSWORD= "john1234"
-#server
- SERVER = "localhost/postgres"
-#port
- DB_PORT = 5432
-# path to local JDBC driver
- pathToDriver='C:/JDBC' 
 
-connectionDetails <- DatabaseConnector::createConnectionDetails(dbms = DBMS,
-                                                                user = USER,
-                                                                password = PASSWORD,
-                                                                server = SERVER,
-                                                                port = DB_PORT,
-                                                                pathToDriver = pathToDriver)
-# The name of the database schema where the CDM data can be found:
-cdmDatabaseSchema <- "CDM_IBM_MDCD_V1153.dbo"
 
-# The name of the database schema and table where the study-specific cohorts will be instantiated:
-cohortDatabaseSchema <- "scratch.dbo"
-cohortTable <- "PioneerMetastaticAE"
-
-# Some meta-information that will be used by the export function:
-databaseId <- "Synpuf"
-databaseName <- "Medicare Claims Synthetic Public Use Files (SynPUFs)"
-databaseDescription <-
-  "Medicare Claims Synthetic Public Use Files (SynPUFs) were created to allow interested parties to gain familiarity using Medicare claims data while protecting beneficiary privacy. These files are intended to promote development of software and applications that utilize files in this format, train researchers on the use and complexities of Centers for Medicare and Medicaid Services (CMS) claims, and support safe data mining innovations. The SynPUFs were created by combining randomized information from multiple unique beneficiaries and changing variable values. This randomization and combining of beneficiary information ensures privacy of health information."
-
-# For some database platforms (e.g. Oracle): define a schema that can be used to emulate temp tables:
-options(sqlRenderTempEmulationSchema = NULL)
+#Age group breaks
+breaks_age <- c(18, 55, 75, 120)
 
 PioneerMetastaticAE::execute(
   connectionDetails = connectionDetails,
@@ -68,7 +74,8 @@ execute_IR  (connectionDetails=connectionDetails,
                        cohortTable = cohortTable,
                        tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
                        databaseId = databaseId,
-		       outputFolderIR=outputFolderIR
+		                   outputFolderIR=outputFolderIR,
+                       breaks_age = breaks_age
                       ) 
 
 # if you want to view the shiny app locally, uncomment the following section
