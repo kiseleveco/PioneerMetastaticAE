@@ -54,6 +54,10 @@ options(andromedaTempFolder = file.path(outputFolder, "andromedaTemp"))
 #Age group breaks
 breaks_age <- c(18, 55, 75, 120)
 
+# Charlson Comorbidity Index category breaks (interior cut points).
+# The default c(0, 2, 4) yields the strata 0, 1-2, 3-4 and 5+.
+breaks_charlson <- c(0, 2, 4)
+
 PioneerMetastaticAE::execute(
   connectionDetails = connectionDetails,
   cdmDatabaseSchema = cdmDatabaseSchema,
@@ -77,6 +81,20 @@ execute_IR  (connectionDetails=connectionDetails,
 		                   outputFolderIR=outputFolderIR,
                        breaks_age = breaks_age
                       ) 
+
+# Execute the incidence rate analysis stratified by the Charlson Comorbidity Index.
+# The CCI is computed as in FeatureExtraction v3.2.0 (all condition_era on/before index).
+# Set Grouping = FALSE here because execute_IR above has already (re)built the grouping cohorts.
+execute_IR_charlson(connectionDetails = connectionDetails,
+                    cdmDatabaseSchema = cdmDatabaseSchema,
+                    cohortDatabaseSchema = cohortDatabaseSchema,
+                    cohortTable = cohortTable,
+                    tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
+                    databaseId = databaseId,
+                    outputFolderIR = outputFolderIR,
+                    breaks_charlson = breaks_charlson,
+                    Grouping = FALSE)
+
 
 # if you want to view the shiny app locally, uncomment the following section
 # CohortDiagnostics::createMergedResultsFile(

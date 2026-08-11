@@ -317,9 +317,9 @@ data_prep_episodic <- function(ae, target){
 #############################################################
 #############################################################
 # cut and aggregate the data at the desired age groups
-cut_and_aggregate = function(df, breaks_age = breaks_age)
-{	
-  break_points_age  <- c(18, breaks_age, Inf) 
+cut_and_aggregate = function(df)
+{
+  break_points_age  <- c(18, breaks_age, Inf)
   df                <- mutate(df, age_cat = cut(age_at_index_T, breaks = break_points_age), include.lowest = TRUE)
   out_id            <- unique(df$outcome_id)
   suppressMessages(
