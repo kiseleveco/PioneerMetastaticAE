@@ -52,7 +52,7 @@ options(andromedaTempFolder = file.path(outputFolder, "andromedaTemp"))
 
 
 #Age group breaks
-breaks_age <- c(18, 55, 75, 120)
+breaks_age <- c(18, 55, 75)
 
 PioneerMetastaticAE::execute(
   connectionDetails = connectionDetails,
