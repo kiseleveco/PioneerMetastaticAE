@@ -52,7 +52,7 @@ options(andromedaTempFolder = file.path(outputFolder, "andromedaTemp"))
 
 
 #Age group breaks
-breaks_age <- c(18, 55, 75, 120)
+breaks_age <- c(18, 55, 75)
 
 # Charlson Comorbidity Index category breaks (interior cut points).
 # The default c(0, 2, 4) yields the strata 0, 1-2, 3-4 and 5+.

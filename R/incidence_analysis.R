@@ -652,7 +652,7 @@ for(i in 1:length(target_id)){
 		s1_age[[counter1]]$target		  =target_id[i]
 		s1_age[[counter1]]$outcome		=OutcomeList$outcome_id[j]	
 		s1_age[[counter1]]$databaseId	=databaseId
-		ds_ir     <- cbind(cut_and_aggregate(ds),databaseId)
+		ds_ir     <- cbind(cut_and_aggregate(ds, breaks_age),databaseId)
     write_incidence_rates_csv(ds_ir,1)
 
 		}
@@ -691,7 +691,7 @@ for(i in 1:length(target_id)){
 		s2_age[[counter2]]$outcome		=OutcomeList$outcome_id[j]	
 		s2_age[[counter2]]$databaseId	=databaseId
   
- 		ds_ir     <- cbind(cut_and_aggregate(ds),databaseId)
+ 		ds_ir     <- cbind(cut_and_aggregate(ds, breaks_age),databaseId)
 		write_incidence_rates_csv(ds_ir,0)
 		
 		ds_ep=mcf_episodic_prep(ae = outcome, target = target)
