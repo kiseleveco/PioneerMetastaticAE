@@ -45,7 +45,7 @@ maxCores <- parallel::detectCores()
 outputFolder <- file.path("/home/a_kiselev/output", paste0(databaseId, "_SAT3_PioneerMetastaticAE"))
 
 # Specify another folder where the Incidence rate results will be written:
-outputFolderIR<- file.path("/home/a_kiselev/output", paste0(databaseId, "_SAT3_PioneerMetastaticAE"))
+outputFolderIR<- file.path("/home/a_kiselev/output", paste0(databaseId, "_SAT3_PioneerMetastaticAE", "IR"))
 # Optional: specify where the temporary files (used by the Andromeda package) will be created:
 options(andromedaTempFolder = file.path(outputFolder, "andromedaTemp"))
 

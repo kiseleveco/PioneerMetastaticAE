@@ -394,7 +394,7 @@ data_prep_episodic <- function(ae, target, charlson){
 }
 
 # Bin the Charlson score. Default breaks_charlson = c(0,2,4) -> "0","(0,2]","(2,4]","(4,Inf]".
-charlson_cut = function(score)
+charlson_cut = function(score, breaks_charlson)
 {
   cut(score, breaks = c(-Inf, breaks_charlson, Inf))
 }
@@ -404,7 +404,7 @@ charlson_cut = function(score)
 ##########################################################################################
 cut_and_aggregate = function(df)
 {
-  df                <- mutate(df, charlson_cat = charlson_cut(charlson_score))
+  df                <- mutate(df, charlson_cat = charlson_cut(charlson_score, breaks_charlson))
   out_id            <- unique(df$outcome_id)
   suppressMessages(
   df <- (group_by(df, target_id, charlson_cat, index_year_target) %>%
@@ -469,7 +469,7 @@ outcome_id=unique(df_ae_1$outcome_id)
 names(df_o_1)=c("target_id","outcome_id","subject_id","Charlson_Score","Year","time","event")
 
 df=data.frame(rbind(df_o_1, df_ae_1))
-df$Charlson_Group= charlson_cut(df$Charlson_Score)
+df$Charlson_Group= charlson_cut(df$Charlson_Score, breaks_charlson)
 return(df)
 }
 
@@ -623,7 +623,7 @@ for(i in 1:length(target_id)){
         counter1=counter1+1
         print(paste( " Calculating Charlson-stratified incidence for target:", target_id[i],"and outcome:", OutcomeList$outcome_id[j]))
         ds <- data_prep_chronic(ae = outcome, target = target_chronic, charlson = charlson)
-        Charlson_Group= charlson_cut(ds$charlson_score)
+        Charlson_Group= charlson_cut(ds$charlson_score, breaks_charlson)
 
         s1_charlson[[counter1]] <- survfit(Surv(ds$TAR, ds$count) ~  Charlson_Group,   data = ds)
         s1_charlson[[counter1]]$target      =target_id[i]
@@ -645,7 +645,7 @@ for(i in 1:length(target_id)){
         counter2=counter2+1
         print(paste( " Calculating Charlson-stratified incidence for target:", target_id[i],"and outcome:", OutcomeList$outcome_id[j]))
         ds <- data_prep_episodic(ae = outcome, target = target, charlson = charlson)
-        Charlson_Group= charlson_cut(ds$charlson_score)
+        Charlson_Group= charlson_cut(ds$charlson_score, breaks_charlson)
         modified_count <- ifelse(ds$count> 0, 1, 0)
 
         s2_charlson[[counter2]] <- survfit(Surv(ds$TAR, modified_count) ~ Charlson_Group,data = ds)
