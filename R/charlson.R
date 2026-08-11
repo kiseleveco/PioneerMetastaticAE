@@ -241,6 +241,39 @@ sql_charlson_cleanup <-
 "IF OBJECT_ID('tempdb..#charlson_concepts', 'U') IS NOT NULL DROP TABLE #charlson_concepts;
 IF OBJECT_ID('tempdb..#charlson_scoring', 'U') IS NOT NULL DROP TABLE #charlson_scoring;"
 
+# Average Charlson index per cohort. #charlson_scoring / #charlson_concepts are joined to the
+# cohort table (through condition_era) to score every subject; the score is then averaged
+# by cohort_definition_id with GROUP BY / AVG. The join keeps cohort_definition_id together
+# with subject_id, so a subject that belongs to several cohorts is scored once per cohort
+# (each cohort's own cohort_start_date drives the on/before-index lookback). AVG is taken
+# over the subjects returned by the join, i.e. those with at least one Charlson condition.
+sql_charlson_by_cohort <-
+"SELECT scores.cohort_definition_id AS cohort_id,
+  COUNT(*) AS n_subjects,
+  AVG(CAST(scores.charlson_score AS FLOAT)) AS average_charlson_index
+FROM (
+  SELECT cohort_category.cohort_definition_id,
+    cohort_category.subject_id,
+    SUM(cohort_category.weight) AS charlson_score
+  FROM (
+    SELECT DISTINCT cohort.cohort_definition_id,
+      cohort.subject_id,
+      charlson_scoring.diag_category_id,
+      charlson_scoring.weight
+    FROM @cohortDatabaseSchema.@cohortTable cohort
+    INNER JOIN @cdmDatabaseSchema.condition_era condition_era
+      ON cohort.subject_id = condition_era.person_id
+    INNER JOIN #charlson_concepts charlson_concepts
+      ON condition_era.condition_concept_id = charlson_concepts.concept_id
+    INNER JOIN #charlson_scoring charlson_scoring
+      ON charlson_concepts.diag_category_id = charlson_scoring.diag_category_id
+    WHERE condition_era.condition_era_start_date <= cohort.cohort_start_date
+  ) cohort_category
+  GROUP BY cohort_category.cohort_definition_id, cohort_category.subject_id
+) scores
+GROUP BY scores.cohort_definition_id
+ORDER BY scores.cohort_definition_id;"
+
 ##########################################################################################
 # Utility / SQL helper functions (mirrors execute_IR)
 ##########################################################################################
@@ -290,11 +323,23 @@ get_data=function(sql)
 suppressMessages(as.data.frame(DatabaseConnector::querySql(conn,sql)))
 }
 
-# Build the Charlson scoring / concept temp tables once.
+# Build the Charlson scoring / concept temp tables once, then write the average Charlson
+# index per cohort to Charlson_index_by_cohort.csv in the output folder.
 build_charlson_tables=function()
 {
   sql_rendered = SqlRender::render(sql_charlson_setup, cdmDatabaseSchema = cdmDatabaseSchema)
   DatabaseConnector::executeSql(conn, SqlRender::translate(sql_rendered, targetDialect = DBMS))
+
+  # Average Charlson index per cohort_id
+  sql_avg = SqlRender::render(sql_charlson_by_cohort,
+                              cdmDatabaseSchema    = cdmDatabaseSchema,
+                              cohortDatabaseSchema = cohortDatabaseSchema,
+                              cohortTable          = cohortTable)
+  charlson_by_cohort = get_data(SqlRender::translate(sql_avg, targetDialect = DBMS))
+  charlson_by_cohort$databaseId = databaseId
+  write.csv(charlson_by_cohort,
+            file.path(outputFolderIR, "Charlson_index_by_cohort.csv"),
+            row.names = FALSE)
 }
 
 # Drop the Charlson temp tables.
