@@ -31,6 +31,7 @@ Imports:
   stringr,
   tidyr (>= 1.2.0),
   CohortGenerator (>= 0.8.0),
+  PhenotypeLibrary (>= 3.0.0),
   remotes
 Suggests:
   Eunomia,
@@ -45,6 +46,7 @@ Suggests:
   OhdsiShinyModules
 Remotes:
   ohdsi/FeatureExtraction,
+  ohdsi/PhenotypeLibrary,
   ohdsi/ResultModelManager,
   ohdsi/ROhdsiWebApi,
   ohdsi/CirceR,

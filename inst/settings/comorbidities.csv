@@ -1,0 +1,30 @@
+cohortId,comorbidity_name
+362,Acute Kidney Injury AKI
+453,Osteoarthritis
+482,Gastrointestinal hemorrhage
+499,Type 1 diabetes mellitus
+503,Type 2 diabetes mellitus
+506,Chronic obstructive lung disease
+513,Atrial fibrillation
+520,Hypertensive disorder
+522,Coronary arteriosclerosis
+523,Arteriosclerotic vascular disease
+525,Gastroesophageal reflux disease
+530,Peripheral vascular disease
+532,Heart disease
+554,Cerebrovascular disease
+558,Hyperlipidemia
+563,Obesity
+594,Depressive disorder
+595,Pulmonary embolism
+614,Venous thrombosis
+651,Dementia
+654,Ischemic heart disease
+658,Hepatic failure
+687,Chronic kidney disease
+709,Chronic liver disease
+920,Cardiovascular disease
+936,Hepatic failure2
+965,3-point MACE
+967,4-point MACE
+1333,Advanced liver disease

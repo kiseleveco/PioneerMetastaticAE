@@ -96,6 +96,21 @@ execute_IR_charlson(connectionDetails = connectionDetails,
                     Grouping = FALSE)
 
 
+# Execute the incidence rate analysis stratified by presence/absence of prior comorbidities.
+# The comorbidity list is read from inst/settings/comorbidities.csv and the cohorts are built
+# from the OHDSI PhenotypeLibrary into <cohortTable>_comorbidity. A comorbidity is "present"
+# when the subject has >=1 entry in its cohort strictly before the study index date.
+# Set generateComorbidityCohorts = FALSE on reruns to reuse the already-built cohort table.
+execute_IR_comorbidity(connectionDetails = connectionDetails,
+                       cdmDatabaseSchema = cdmDatabaseSchema,
+                       cohortDatabaseSchema = cohortDatabaseSchema,
+                       cohortTable = cohortTable,
+                       tempEmulationSchema = getOption("sqlRenderTempEmulationSchema"),
+                       databaseId = databaseId,
+                       outputFolderIR = outputFolderIR,
+                       generateComorbidityCohorts = TRUE)
+
+
 # if you want to view the shiny app locally, uncomment the following section
 # CohortDiagnostics::createMergedResultsFile(
 #  dataFolder = outputFolder,
