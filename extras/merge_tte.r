@@ -17,7 +17,8 @@ for (zip_file in zip_files) {
   # Step 2b: List RDS files within the extracted folder
   rds_files <- list.files(temp_extracted_folder, pattern = "tte", ignore.case = TRUE, full.names = TRUE)
   # Step 2c: Read RDS files and merge them by filename
-  database_name=tools::file_path_sans_ext( basename(zip_file))
+  counts=read.csv(paste0(temp_extracted_folder,"/counts.csv"))
+  database_name= unique(counts$databaseId)
   merged_tte[[database_name]]=list()
   for (rds_file in rds_files) {
     data <- arrange_tte_objects(readRDS(rds_file))
