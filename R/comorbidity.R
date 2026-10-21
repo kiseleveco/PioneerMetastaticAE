@@ -409,6 +409,12 @@ write_incidence_rates_csv=function(df, chronic_indicator, comorbidity_id, comorb
 
 present_factor = function(x) factor(ifelse(x == 1, "present", "absent"), levels = c("absent", "present"))
 
+# TRUE when both present and absent are observed, so a stratified fit is possible. When a
+# comorbidity is all-present or all-absent in a cell, a one-level factor would break
+# survfit/reda::mcf ("contrasts can be applied only to factors with 2 or more levels"),
+# so those fits fall back to an unstratified (~ 1) model.
+has_two_levels = function(x) length(unique(x[!is.na(x)])) >= 2
+
 ##########################################################################################
 # Main loop
 ##########################################################################################
@@ -463,7 +469,7 @@ for(i in 1:length(target_id)){
           write_incidence_rates_csv(ds_ir, 1, comorbidity_ids[k], nm)
 
           grp <- present_factor(present)
-          sf <- survfit(Surv(ds$TAR, ds$count) ~ grp, data = ds)
+          sf <- if (has_two_levels(present)) survfit(Surv(ds$TAR, ds$count) ~ grp, data = ds) else survfit(Surv(ds$TAR, ds$count) ~ 1, data = ds)
           sf$target = target_id[i]; sf$outcome = OutcomeList$outcome_id[j]
           sf$comorbidity_id = comorbidity_ids[k]; sf$comorbidity_name = nm; sf$databaseId = databaseId
           tte_chronic[[cid]][[length(tte_chronic[[cid]]) + 1]] <- sf
@@ -496,13 +502,13 @@ for(i in 1:length(target_id)){
           write_incidence_rates_csv(ds_ir, 0, comorbidity_ids[k], nm)
 
           grp <- present_factor(present)
-          sf <- survfit(Surv(ds$TAR, modified_count) ~ grp, data = ds)
+          sf <- if (has_two_levels(present)) survfit(Surv(ds$TAR, modified_count) ~ grp, data = ds) else survfit(Surv(ds$TAR, modified_count) ~ 1, data = ds)
           sf$target = target_id[i]; sf$outcome = OutcomeList$outcome_id[j]
           sf$comorbidity_id = comorbidity_ids[k]; sf$comorbidity_name = nm; sf$databaseId = databaseId
           tte_episodic[[cid]][[length(tte_episodic[[cid]]) + 1]] <- sf
 
           ds_ep$present <- present_factor(ds_ep[[col]])
-          mcf1 <- reda::mcf(Recur(id = subject_id, time = time, event = event) ~ present, data = ds_ep)
+          mcf1 <- if (has_two_levels(ds_ep[[col]])) reda::mcf(Recur(id = subject_id, time = time, event = event) ~ present, data = ds_ep) else reda::mcf(Recur(id = subject_id, time = time, event = event) ~ 1, data = ds_ep)
           m <- mcf1@MCF
           m$target = target_id[i]; m$outcome = OutcomeList$outcome_id[j]
           m$comorbidity_id = comorbidity_ids[k]; m$comorbidity_name = nm; m$databaseId = databaseId
